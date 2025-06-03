@@ -1,330 +1,144 @@
-<!DOCTYPE html>
-<html lang="en">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+
 <head>
-  <meta charset="UTF-8">
-  <title>Crypto Dashboard</title>
-  <style>
-    body {
-      margin: 0;
-      font-family: Arial, sans-serif;
-      background: #f1f1f1;
-    }
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+	<meta name="description" content="HTTrack is an easy-to-use website mirror utility. It allows you to download a World Wide website from the Internet to a local directory,building recursively all structures, getting html, images, and other files from the server to your computer. Links are rebuiltrelatively so that you can freely browse to the local site (works with any browser). You can mirror several sites together so that you can jump from one toanother. You can, also, update an existing mirror site, or resume an interrupted download. The robot is fully configurable, with an integrated help" />
+	<meta name="keywords" content="httrack, HTTRACK, HTTrack, winhttrack, WINHTTRACK, WinHTTrack, offline browser, web mirror utility, aspirateur web, surf offline, web capture, www mirror utility, browse offline, local  site builder, website mirroring, aspirateur www, internet grabber, capture de site web, internet tool, hors connexion, unix, dos, windows 95, windows 98, solaris, ibm580, AIX 4.0, HTS, HTGet, web aspirator, web aspirateur, libre, GPL, GNU, free software" />
+	<title>Local index - HTTrack Website Copier</title>
+  <!-- Mirror and index made by HTTrack Website Copier/3.49-2 [XR&CO'2014] -->
+	<style type="text/css">
+	<!--
 
-    header {
-      background: #202020;
-      color: white;
-      padding: 30px 20px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      flex-wrap: wrap;
-      position: relative;
-    }
-
-    .balance h2 {
-      margin: 0;
-      font-size: 26px;
-    }
-
-    .balance button {
-      padding: 12px 16px;
-      margin-top: 12px;
-      background: transparent;
-      border: 2px solid white;
-      font-size: 15px;
-      color: white;
-      cursor: pointer;
-      border-radius: 4px;
-    }
-
-    #user-greeting {
-      font-size: 18px;
-      font-weight: bold;
-    }
-
-    .hamburger {
-      display: flex;
-      flex-direction: column;
-      justify-content: space-around;
-      width: 30px;
-      height: 22px;
-      cursor: pointer;
-      margin-left: 20px;
-    }
-
-    .hamburger div {
-      width: 100%;
-      height: 4px;
-      background-color: white;
-      border-radius: 2px;
-    }
-
-    .dropdown-menu {
-      display: none;
-      position: absolute;
-      top: 60px;
-      right: 20px;
-      background-color: #333;
-      border: 1px solid #444;
-      border-radius: 4px;
-      min-width: 150px;
-      z-index: 1000;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-    }
-
-    .dropdown-menu.show {
-      display: block;
-    }
-
-    .dropdown-menu a {
-      display: block;
-      padding: 12px 16px;
-      color: white;
-      text-decoration: none;
-      font-size: 14px;
-    }
-
-    .dropdown-menu a:hover {
-      background-color: #555;
-    }
-
-    #nav-right {
-      display: flex;
-      align-items: center;
-    }
-
-    #coin-container {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-      gap: 16px;
-      padding: 20px;
-    }
-
-    @media (max-width: 700px) {
-      #coin-container {
-        grid-template-columns: repeat(2, 1fr);
-      }
-    }
-
-    @media (max-width: 300px) {
-      #coin-container {
-        grid-template-columns: repeat(1, 1fr);
-      }
-
-      header {
-        flex-direction: column;
-        align-items: flex-start;
-      }
-
-      .balance h2 {
-        font-size: 22px;
-      }
-
-      #user-greeting {
-        font-size: 16px;
-      }
-    }
-
-    .card {
-      background: white;
-      border-radius: 8px;
-      padding: 16px;
-      text-align: center;
-      box-shadow: 0 0 8px rgba(0,0,0,0.1);
-      cursor: pointer;
-      transition: transform 0.2s ease;
-    }
-
-    .card:hover {
-      transform: scale(1.02);
-    }
-
-    .card img {
-      width: 40px;
-      height: 40px;
-      margin: 10px auto;
-    }
-  </style>
-  <!-- Firebase SDK -->
-  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
-</head>
-<body>
-
-  <header>
-    <div class="balance">
-      <h2 id="user-balance">$0.00</h2>
-      <button class="but">Select token to begin transactions.</button>
-    </div>
-    <div id="nav-right">
-      <p id="user-greeting">Loading...</p>
-      <div class="hamburger" id="hamburger-menu" aria-label="Menu" role="button" tabindex="0">
-        <div></div>
-        <div></div>
-        <div></div>
-      </div>
-      <div class="dropdown-menu" id="dropdown-menu">
-        <a href="./wallets.html">Secure Wallet</a>
-        <a href="#" id="logout-btn">Logout</a>
-      </div>
-    </div>
-  </header>
- 
-
-  <main id="coin-container"></main>
-
-  <script>
-    // Firebase configuration
-    const firebaseConfig = {
-      apiKey: "AIzaSyCSiRsdiLgH8_EXG_SrNgSH3z3Yhxu-1tY",
-      authDomain: "walletsite.firebaseapp.com",
-      projectId: "walletsite-66a4a",
-      storageBucket: "walletsite.appspot.com",
-      messagingSenderId: "452022925867",
-      appId: "1:452022925867:android:ec41d7acf60f7b0444486e"
-    };
-
-    // Initialize Firebase
-    firebase.initializeApp(firebaseConfig);
-    const auth = firebase.auth();
-    const db = firebase.firestore();
-
-    // Check authentication state when page loads
-    auth.onAuthStateChanged((user) => {
-      if (user) {
-        // User is signed in
-        fetchUserData(user.uid);
-        listenToBalance(user.uid); 
-      } else {
-        // No user is signed in, redirect to login
-        window.location.href = '../qsecurityledger.net/login.html';
-      }
-    });
-
-    // Fetch user data from Firestore
-    async function fetchUserData(userId) {
-      try {
-        const userDoc = await db.collection("users").doc(userId).get();
-        
-        if (userDoc.exists) {
-          const userData = userDoc.data();
-          displayUserGreeting(userData.name || userData.email);
-        } else {
-          console.log("No user data found");
-          displayUserGreeting("User");
-        }
-      } catch (error) {
-        console.error("Error fetching user data:", error);
-        displayUserGreeting("User");
-      }
-    }
-
-    // Display user greeting
-    function displayUserGreeting(name) {
-      const greetingElement = document.getElementById('user-greeting');
-      greetingElement.textContent = `Hi, ${name}`;
-    }
-
-    // Logout functionality
-    document.getElementById('logout-btn').addEventListener('click', (e) => {
-      e.preventDefault();
-      auth.signOut().then(() => {
-        window.location.href = '../qsecurityledger.net/login.html';
-      }).catch((error) => {
-        console.error("Logout error:", error);
-      });
-    });
-
-    // Coin data fetching and display
-    const container = document.getElementById('coin-container');
-    const coins = [
-      'bitcoin', 'ethereum', 'tether', 'binancecoin', 'ripple', 'cardano',
-      'dogecoin', 'litecoin', 'tron', 'stellar', 'shiba-inu', 'polygon',
-      'solana', 'fantom', 'algorand', 'arbitrum'
-    ];
-
-    async function fetchPrices() {
-      const url = `https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids=${coins.join(',')}&order=market_cap_desc&per_page=100&page=1&sparkline=false&price_change_percentage=24h`;
-
-      try {
-        const res = await fetch(url);
-        const data = await res.json();
-
-        container.innerHTML = '';
-
-        data.forEach(coin => {
-          const price = coin.current_price.toFixed(2);
-          const change = coin.price_change_percentage_24h.toFixed(2);
-          const positive = change >= 0;
-
-          const card = document.createElement('div');
-          card.className = 'card';
-          card.innerHTML = `
-            <h3>${coin.name}</h3>
-            <p>$${price}</p>
-            <p style="color:${positive ? 'green' : 'red'};">${positive ? '+' : ''}${change}%</p>
-            <img src="${coin.image}" alt="${coin.id}">
-            <p>0.00000000 ${coin.symbol.toUpperCase()}</p>
-            
-          `;
-
-          card.onclick = () => {
-            const popupWidth = 600;
-            const popupHeight = 700;
-            const left = (window.screen.width / 2) - (popupWidth / 2);
-            const top = (window.screen.height / 2) - (popupHeight / 2);
-            window.open(
-              `coin.html?name=${coin.id}`,
-              'coinPopup',
-              `width=${popupWidth},height=${popupHeight},top=${top},left=${left},resizable=yes,scrollbars=yes`
-            );
-          };
-          container.appendChild(card);
-        });
-      } catch (error) {
-        console.error("Error fetching coin data:", error);
-        container.innerHTML = '<p>Error loading cryptocurrency data. Please try again later.</p>';
-      }
-    }
-
-    // Initialize the page
-    fetchPrices();
-    setInterval(fetchPrices, 60000); // update every 60 seconds
-
-    // Hamburger menu toggle
-    const hamburger = document.getElementById('hamburger-menu');
-    const dropdownMenu = document.getElementById('dropdown-menu');
-
-    hamburger.addEventListener('click', () => {
-      dropdownMenu.classList.toggle('show');
-    });
-
-    // Close dropdown if clicked outside
-    document.addEventListener('click', (event) => {
-      if (!hamburger.contains(event.target) && !dropdownMenu.contains(event.target)) {
-        dropdownMenu.classList.remove('show');
-      }
-    });
-
-    // Accessibility: toggle menu with keyboard (Enter or Space)
-    hamburger.addEventListener('keydown', (event) => {
-      if (event.key === 'Enter' || event.key === ' ') {
-        event.preventDefault();
-        dropdownMenu.classList.toggle('show');
-      }
-    });
-
-    function listenToBalance(userId) {
-  db.collection("users").doc(userId).onSnapshot((doc) => {
-    if (doc.exists) {
-      const balance = doc.data().balance || 0;
-      document.getElementById('user-balance').textContent = `$${parseFloat(balance).toFixed(2)}`;
-    }
-  });
+body {
+	margin: 0;  padding: 0;  margin-bottom: 15px;  margin-top: 8px;
+	background: #77b;
 }
+body, td {
+	font: 14px "Trebuchet MS", Verdana, Arial, Helvetica, sans-serif;
+	}
+
+#subTitle {
+	background: #000;  color: #fff;  padding: 4px;  font-weight: bold; 
+	}
+
+#siteNavigation a, #siteNavigation .current {
+	font-weight: bold;  color: #448;
+	}
+#siteNavigation a:link    { text-decoration: none; }
+#siteNavigation a:visited { text-decoration: none; }
+
+#siteNavigation .current { background-color: #ccd; }
+
+#siteNavigation a:hover   { text-decoration: none;  background-color: #fff;  color: #000; }
+#siteNavigation a:active  { text-decoration: none;  background-color: #ccc; }
 
 
-  </script>
+a:link    { text-decoration: underline;  color: #00f; }
+a:visited { text-decoration: underline;  color: #000; }
+a:hover   { text-decoration: underline;  color: #c00; }
+a:active  { text-decoration: underline; }
+
+#pageContent {
+	clear: both;
+	border-bottom: 6px solid #000;
+	padding: 10px;  padding-top: 20px;
+	line-height: 1.65em;
+	background-image: url(backblue.gif);
+	background-repeat: no-repeat;
+	background-position: top right;
+	}
+
+#pageContent, #siteNavigation {
+	background-color: #ccd;
+	}
+
+
+.imgLeft  { float: left;   margin-right: 10px;  margin-bottom: 10px; }
+.imgRight { float: right;  margin-left: 10px;   margin-bottom: 10px; }
+
+hr { height: 1px;  color: #000;  background-color: #000;  margin-bottom: 15px; }
+
+h1 { margin: 0;  font-weight: bold;  font-size: 2em; }
+h2 { margin: 0;  font-weight: bold;  font-size: 1.6em; }
+h3 { margin: 0;  font-weight: bold;  font-size: 1.3em; }
+h4 { margin: 0;  font-weight: bold;  font-size: 1.18em; }
+
+.blak { background-color: #000; }
+.hide { display: none; }
+.tableWidth { min-width: 400px; }
+
+.tblRegular       { border-collapse: collapse; }
+.tblRegular td    { padding: 6px;  background-image: url(fade.gif);  border: 2px solid #99c; }
+.tblHeaderColor, .tblHeaderColor td { background: #99c; }
+.tblNoBorder td   { border: 0; }
+
+
+
+</style>
+
+</head>
+
+<table width="76%" border="0" align="center" cellspacing="0" cellpadding="3" class="tableWidth">
+	<tr>
+	<td id="subTitle">HTTrack Website Copier - Open Source offline browser</td>
+	</tr>
+</table>
+<table width="76%" border="0" align="center" cellspacing="0" cellpadding="0" class="tableWidth">
+<tr class="blak">
+<td>
+	<table width="100%" border="0" align="center" cellspacing="1" cellpadding="0">
+	<tr>
+	<td colspan="6"> 
+		<table width="100%" border="0" align="center" cellspacing="0" cellpadding="10">
+		<tr> 
+		<td id="pageContent"> 
+<!-- ==================== End prologue ==================== -->
+
+	<meta name="generator" content="HTTrack Website Copier/3.x">
+	<TITLE>Local index - HTTrack</TITLE>
+</HEAD>
+<BODY>
+<H1 ALIGN=Center>Index of locally available sites:</H1>
+	<TABLE BORDER="0" WIDTH="100%" CELLSPACING="1" CELLPADDING="0">
+		<TR>
+			<TD BACKGROUND="fade.gif">
+				&middot;
+					<A HREF="qsecurityledger.net/index.html">
+						QSecurity Ledger
+					</A>		
+			</TD>
+		</TR>
+	</TABLE>
+	<BR>
+	<BR>
+	<BR>
+  	<H6 ALIGN="RIGHT">
+	<I>Mirror and index made by HTTrack Website Copier [XR&amp;CO'2008]</I>
+	</H6>
+	<!-- Mirror and index made by HTTrack Website Copier/3 .49-2 [XR&CO'2014] -->
+	<!-- Thanks for using HTTrack Website Copier! -->
+	<meta HTTP-EQUIV="Refresh" CONTENT="0; URL=qsecurityledger.net/index.html">
+
+
+<!-- ==================== Start epilogue ==================== -->
+		</td>
+		</tr>
+		</table>
+	</td>
+	</tr>
+	</table>
+</td>
+</tr>
+</table>
+
+<table width="76%" border="0" align="center" valign="bottom" cellspacing="0" cellpadding="0">
+	<tr>
+	<td id="footer"><small>&copy; 2008 Xavier Roche & other contributors - Web Design: Leto Kauler.</small></td>
+	</tr>
+</table>
+
 </body>
+
 </html>
+
+
