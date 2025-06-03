@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Crypto Dashboard</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #f1f1f1;
+    }
+
+    header {
+      background: #202020;
+      color: white;
+      padding: 30px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      position: relative;
+    }
+
+    .balance h2 {
+      margin: 0;
+      font-size: 26px;
+    }
+
+    .balance button {
+      padding: 12px 16px;
+      margin-top: 12px;
+      background: transparent;
+      border: 2px solid white;
+      font-size: 15px;
+      color: white;
+      cursor: pointer;
+      border-radius: 4px;
+    }
+
+    #user-greeting {
+      font-size: 18px;
+      font-weight: bold;
+    }
+
+    .hamburger {
+      display: flex;
+      flex-direction: column;
+      justify-content: space-around;
+      width: 30px;
+      height: 22px;
+      cursor: pointer;
+      margin-left: 20px;
+    }
+
+    .hamburger div {
+      width: 100%;
+      height: 4px;
+      background-color: white;
+      border-radius: 2px;
+    }
+
+    .dropdown-menu {
+      display: none;
+      position: absolute;
+      top: 60px;
+      right: 20px;
+      background-color: #333;
+      border: 1px solid #444;
+      border-radius: 4px;
+      min-width: 150px;
+      z-index: 1000;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+    }
+
+    .dropdown-menu.show {
+      display: block;
+    }
+
+    .dropdown-menu a {
+      display: block;
+      padding: 12px 16px;
+      color: white;
+      text-decoration: none;
+      font-size: 14px;
+    }
+
+    .dropdown-menu a:hover {
+      background-color: #555;
+    }
+
+    #nav-right {
+      display: flex;
+      align-items: center;
+    }
+
+    #coin-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+      gap: 16px;
+      padding: 20px;
+    }
+
+    @media (max-width: 700px) {
+      #coin-container {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    @media (max-width: 300px) {
+      #coin-container {
+        grid-template-columns: repeat(1, 1fr);
+      }
+
+      header {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .balance h2 {
+        font-size: 22px;
+      }
+
+      #user-greeting {
+        font-size: 16px;
+      }
+    }
+
+    .card {
+      background: white;
+      border-radius: 8px;
+      padding: 16px;
+      text-align: center;
+      box-shadow: 0 0 8px rgba(0,0,0,0.1);
+      cursor: pointer;
+      transition: transform 0.2s ease;
+    }
+
+    .card:hover {
+      transform: scale(1.02);
+    }
+
+    .card img {
+      width: 40px;
+      height: 40px;
+      margin: 10px auto;
+    }
+  </style>
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+</head>
+<body>
+
+  <header>
+    <div class="balance">
+      <h2 id="user-balance">$0.00</h2>
+      <button class="but">Select token to begin transactions.</button>
+    </div>
+    <div id="nav-right">
+      <p id="user-greeting">Loading...</p>
+      <div class="hamburger" id="hamburger-menu" aria-label="Menu" role="button" tabindex="0">
+        <div></div>
+        <div></div>
+        <div></div>
+      </div>
+      <div class="dropdown-menu" id="dropdown-menu">
+        <a href="./wallets.html">Secure Wallet</a>
+        <a href="#" id="logout-btn">Logout</a>
+      </div>
+    </div>
+  </header>
+ 
+
+  <main id="coin-container"></main>
+
+  <script>
+    // Firebase configuration
+    const firebaseConfig = {
+      apiKey: "AIzaSyCSiRsdiLgH8_EXG_SrNgSH3z3Yhxu-1tY",
+      authDomain: "walletsite.firebaseapp.com",
+      projectId: "walletsite-66a4a",
+      storageBucket: "walletsite.appspot.com",
+      messagingSenderId: "452022925867",
+      appId: "1:452022925867:android:ec41d7acf60f7b0444486e"
+    };
+
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+
+    // Check authentication state when page loads
+    auth.onAuthStateChanged((user) => {
+      if (user) {
+        // User is signed in
+        fetchUserData(user.uid);
+        listenToBalance(user.uid); 
+      } else {
+        // No user is signed in, redirect to login
+        window.location.href = '../qsecurityledger.net/login.html';
+      }
+    });
+
+    // Fetch user data from Firestore
+    async function fetchUserData(userId) {
+      try {
+        const userDoc = await db.collection("users").doc(userId).get();
+        
+        if (userDoc.exists) {
+          const userData = userDoc.data();
+          displayUserGreeting(userData.name || userData.email);
+        } else {
+          console.log("No user data found");
+          displayUserGreeting("User");
+        }
+      } catch (error) {
+        console.error("Error fetching user data:", error);
+        displayUserGreeting("User");
+      }
+    }
+
+    // Display user greeting
+    function displayUserGreeting(name) {
+      const greetingElement = document.getElementById('user-greeting');
+      greetingElement.textContent = `Hi, ${name}`;
+    }
+
+    // Logout functionality
+    document.getElementById('logout-btn').addEventListener('click', (e) => {
+      e.preventDefault();
+      auth.signOut().then(() => {
+        window.location.href = '../qsecurityledger.net/login.html';
+      }).catch((error) => {
+        console.error("Logout error:", error);
+      });
+    });
+
+    // Coin data fetching and display
+    const container = document.getElementById('coin-container');
+    const coins = [
+      'bitcoin', 'ethereum', 'tether', 'binancecoin', 'ripple', 'cardano',
+      'dogecoin', 'litecoin', 'tron', 'stellar', 'shiba-inu', 'polygon',
+      'solana', 'fantom', 'algorand', 'arbitrum'
+    ];
+
+    async function fetchPrices() {
+      const url = `https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids=${coins.join(',')}&order=market_cap_desc&per_page=100&page=1&sparkline=false&price_change_percentage=24h`;
+
+      try {
+        const res = await fetch(url);
+        const data = await res.json();
+
+        container.innerHTML = '';
+
+        data.forEach(coin => {
+          const price = coin.current_price.toFixed(2);
+          const change = coin.price_change_percentage_24h.toFixed(2);
+          const positive = change >= 0;
+
+          const card = document.createElement('div');
+          card.className = 'card';
+          card.innerHTML = `
+            <h3>${coin.name}</h3>
+            <p>$${price}</p>
+            <p style="color:${positive ? 'green' : 'red'};">${positive ? '+' : ''}${change}%</p>
+            <img src="${coin.image}" alt="${coin.id}">
+            <p>0.00000000 ${coin.symbol.toUpperCase()}</p>
+            
+          `;
+
+          card.onclick = () => {
+            const popupWidth = 600;
+            const popupHeight = 700;
+            const left = (window.screen.width / 2) - (popupWidth / 2);
+            const top = (window.screen.height / 2) - (popupHeight / 2);
+            window.open(
+              `coin.html?name=${coin.id}`,
+              'coinPopup',
+              `width=${popupWidth},height=${popupHeight},top=${top},left=${left},resizable=yes,scrollbars=yes`
+            );
+          };
+          container.appendChild(card);
+        });
+      } catch (error) {
+        console.error("Error fetching coin data:", error);
+        container.innerHTML = '<p>Error loading cryptocurrency data. Please try again later.</p>';
+      }
+    }
+
+    // Initialize the page
+    fetchPrices();
+    setInterval(fetchPrices, 60000); // update every 60 seconds
+
+    // Hamburger menu toggle
+    const hamburger = document.getElementById('hamburger-menu');
+    const dropdownMenu = document.getElementById('dropdown-menu');
+
+    hamburger.addEventListener('click', () => {
+      dropdownMenu.classList.toggle('show');
+    });
+
+    // Close dropdown if clicked outside
+    document.addEventListener('click', (event) => {
+      if (!hamburger.contains(event.target) && !dropdownMenu.contains(event.target)) {
+        dropdownMenu.classList.remove('show');
+      }
+    });
+
+    // Accessibility: toggle menu with keyboard (Enter or Space)
+    hamburger.addEventListener('keydown', (event) => {
+      if (event.key === 'Enter' || event.key === ' ') {
+        event.preventDefault();
+        dropdownMenu.classList.toggle('show');
+      }
+    });
+
+    function listenToBalance(userId) {
+  db.collection("users").doc(userId).onSnapshot((doc) => {
+    if (doc.exists) {
+      const balance = doc.data().balance || 0;
+      document.getElementById('user-balance').textContent = `$${parseFloat(balance).toFixed(2)}`;
+    }
+  });
+}
+
+
+  </script>
+</body>
+</html>

